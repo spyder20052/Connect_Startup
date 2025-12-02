@@ -23,6 +23,8 @@ export default function RegisterPage() {
         location: 'Cotonou',
         rccm: '',
         rccmFile: null,
+        jobTitle: 'CEO', // Default role
+        isFounder: false,
         // Partner fields
         companyName: '',
         companyType: 'incubateur'
@@ -117,6 +119,8 @@ export default function RegisterPage() {
                     role: formData.role,
                     startupId: startupId,
                     sector: formData.sector,
+                    jobTitle: formData.role === 'startuper' ? formData.jobTitle : undefined,
+                    isFounder: formData.role === 'startuper' ? formData.isFounder : undefined,
                     companyName: formData.role === 'partner' ? formData.companyName : undefined,
                     companyType: formData.role === 'partner' ? formData.companyType : undefined
                 };

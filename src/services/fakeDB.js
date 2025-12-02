@@ -249,7 +249,30 @@ class FakeDB {
             createdAt: Date.now()
         };
 
+
+
         data.users.push(newUser);
+
+        // If startuper created a new startup, add them to members automatically
+        if (newUser.role === 'startuper' && newUser.startupId) {
+            const startupIndex = data.startups.findIndex(s => s.id === newUser.startupId);
+            if (startupIndex !== -1) {
+                // Check if members array exists, if not create it
+                if (!data.startups[startupIndex].members) {
+                    data.startups[startupIndex].members = [];
+                }
+
+                // Add user to members with their role
+                data.startups[startupIndex].members.push({
+                    userId: newUser.uid,
+                    name: newUser.displayName,
+                    role: newUser.jobTitle || 'Membre',
+                    isFounder: newUser.isFounder || false,
+                    joinedAt: Date.now()
+                });
+            }
+        }
+
         this._saveData(data);
 
         return Promise.resolve(newUser);
