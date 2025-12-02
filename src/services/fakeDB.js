@@ -243,9 +243,9 @@ class FakeDB {
         }
 
         const newUser = {
+            uid: 'user' + Date.now(),
             ...userProfile,
-            uid: 'u' + Date.now(),
-            emailVerified: false,
+            emailVerified: true, // Auto-verify email
             createdAt: Date.now()
         };
 

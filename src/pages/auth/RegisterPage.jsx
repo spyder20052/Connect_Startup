@@ -6,7 +6,7 @@ import { db } from '../../services/fakeDB';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
-    const { register } = useAuth();
+    const { register, login } = useAuth();
 
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -123,8 +123,11 @@ export default function RegisterPage() {
 
                 await register(profile);
 
-                // Redirect to email verification page
-                navigate('/verify-email', { state: { email: formData.email } });
+                // Auto-login after registration (no email verification needed)
+                await login(formData.email, formData.password);
+
+                // Redirect to home
+                navigate('/');
 
             } catch (err) {
                 setError(err);
@@ -230,8 +233,8 @@ export default function RegisterPage() {
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, role: role.value })}
                                                 className={`py-3 px-4 text-sm font-bold uppercase rounded-lg border-2 transition ${formData.role === role.value
-                                                        ? 'bg-theme text-white border-theme'
-                                                        : 'bg-white text-gray-500 border-gray-300 hover:border-theme'
+                                                    ? 'bg-theme text-white border-theme'
+                                                    : 'bg-white text-gray-500 border-gray-300 hover:border-theme'
                                                     }`}
                                             >
                                                 {role.label}
@@ -253,8 +256,8 @@ export default function RegisterPage() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, startupChoice: 'new' })}
                                             className={`py-3 px-4 text-sm font-semibold rounded-lg border-2 transition ${formData.startupChoice === 'new'
-                                                    ? 'bg-theme text-white border-theme'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:border-theme'
+                                                ? 'bg-theme text-white border-theme'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:border-theme'
                                                 }`}
                                         >
                                             Créer une nouvelle startup
@@ -263,8 +266,8 @@ export default function RegisterPage() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, startupChoice: 'existing' })}
                                             className={`py-3 px-4 text-sm font-semibold rounded-lg border-2 transition ${formData.startupChoice === 'existing'
-                                                    ? 'bg-theme text-white border-theme'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:border-theme'
+                                                ? 'bg-theme text-white border-theme'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:border-theme'
                                                 }`}
                                         >
                                             Rejoindre une startup existante
@@ -350,8 +353,8 @@ export default function RegisterPage() {
                                                             setSearchResults([]);
                                                         }}
                                                         className={`w-full text-left p-3 rounded-lg border-2 transition ${formData.existingStartupId === startup.id
-                                                                ? 'border-theme bg-theme-light'
-                                                                : 'border-gray-200 hover:border-theme'
+                                                            ? 'border-theme bg-theme-light'
+                                                            : 'border-gray-200 hover:border-theme'
                                                             }`}
                                                     >
                                                         <p className="font-semibold">{startup.name}</p>
