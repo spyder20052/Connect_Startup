@@ -21,7 +21,11 @@ export default function CreateOfferPage() {
         contactPhone: '',
         location: 'Cotonou',
         budget: '',
-        targetAudience: ''
+        targetAudience: '',
+        // Event-specific fields
+        hasCapacityLimit: false,
+        maxCapacity: '',
+        maxSeatsPerStartup: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -104,7 +108,7 @@ export default function CreateOfferPage() {
         }
     };
 
-    if (user.role !== 'partner' && user.role !== 'admin') {
+    if (!user || (user.role !== 'partner' && user.role !== 'admin')) {
         return (
             <div className="max-w-2xl mx-auto">
                 <Alert type="error">
@@ -249,6 +253,66 @@ export default function CreateOfferPage() {
                         />
                     </div>
                 </Card>
+
+                {/* Event Capacity Management - Only for events */}
+                {formData.type === 'event' && (
+                    <Card className="border-2 border-blue-200 bg-blue-50/30">
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <Icon name="Users" className="text-blue-600" />
+                            Gestion des places (Événement)
+                        </h2>
+
+                        <div className="space-y-4">
+                            {/* Capacity Limit Toggle */}
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-blue-200">
+                                <input
+                                    type="checkbox"
+                                    id="hasCapacityLimit"
+                                    checked={formData.hasCapacityLimit}
+                                    onChange={(e) => handleChange('hasCapacityLimit', e.target.checked)}
+                                    className="w-4 h-4 text-theme focus:ring-theme border-gray-300 rounded"
+                                />
+                                <label htmlFor="hasCapacityLimit" className="flex-1 cursor-pointer">
+                                    <span className="font-semibold text-gray-900">Limiter le nombre de places</span>
+                                    <p className="text-sm text-gray-600">Cochez cette case si l'événement a un nombre de places limité</p>
+                                </label>
+                            </div>
+
+                            {/* Capacity Fields */}
+                            {formData.hasCapacityLimit && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input
+                                        label="Nombre total de places"
+                                        type="number"
+                                        min="1"
+                                        placeholder="Ex: 100"
+                                        value={formData.maxCapacity}
+                                        onChange={(e) => handleChange('maxCapacity', e.target.value)}
+                                        required={formData.hasCapacityLimit}
+                                    />
+
+                                    <Input
+                                        label="Places max par startup"
+                                        type="number"
+                                        min="1"
+                                        placeholder="Ex: 5"
+                                        value={formData.maxSeatsPerStartup}
+                                        onChange={(e) => handleChange('maxSeatsPerStartup', e.target.value)}
+                                        required={formData.hasCapacityLimit}
+                                    />
+                                </div>
+                            )}
+
+                            {formData.hasCapacityLimit && (
+                                <div className="bg-blue-100 border border-blue-300 rounded-lg p-3">
+                                    <p className="text-sm text-blue-800">
+                                        ℹ️ Les participants pourront choisir le nombre de places qu'ils souhaitent réserver (jusqu'à la limite définie)
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                )}
 
                 {/* Contact Information */}
                 <Card>

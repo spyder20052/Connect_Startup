@@ -105,8 +105,8 @@ export default function StartupsPage() {
                     <button
                         onClick={() => setViewMode('grid')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${viewMode === 'grid'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-white text-gray-900 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         <Icon name="LayoutGrid" size={16} className="inline mr-1" />
@@ -115,8 +115,8 @@ export default function StartupsPage() {
                     <button
                         onClick={() => setViewMode('list')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${viewMode === 'list'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-white text-gray-900 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         <Icon name="List" size={16} className="inline mr-1" />
@@ -170,8 +170,8 @@ export default function StartupsPage() {
                     <button
                         onClick={() => setShowOnlyVerified(!showOnlyVerified)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${showOnlyVerified
-                                ? 'bg-theme text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-theme text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         <Icon name="CheckCircle" size={14} className="inline mr-1" />
@@ -253,7 +253,7 @@ export default function StartupsPage() {
                                         <Icon name="Users" size={12} />
                                         {startup.members?.length || 0} membre{(startup.members?.length || 0) > 1 ? 's' : ''}
                                     </span>
-                                    {startup.rccm && (
+                                    {user?.role === 'admin' && startup.rccm && (
                                         <span className="font-mono text-[10px]">
                                             {startup.rccm}
                                         </span>
@@ -309,7 +309,7 @@ export default function StartupsPage() {
                                             <Icon name="Users" size={14} />
                                             {startup.members?.length || 0} membre{(startup.members?.length || 0) > 1 ? 's' : ''}
                                         </span>
-                                        {startup.rccm && (
+                                        {user.role === 'admin' && startup.rccm && (
                                             <span className="text-xs text-gray-400 font-mono">
                                                 RCCM: {startup.rccm}
                                             </span>

@@ -26,7 +26,8 @@ export default function OfferDetailPage() {
         experience: '',
         motivation: '',
         contactEmail: user?.email || '',
-        contactPhone: ''
+        contactPhone: '',
+        requestedSeats: 1 // For events with seat management
     });
 
     useEffect(() => {
@@ -106,7 +107,8 @@ export default function OfferDetailPage() {
                 userId: user.uid,
                 status: 'pending',
                 submittedAt: Date.now(),
-                formData: formData
+                formData: formData,
+                requestedSeats: offer.type === 'event' && offer.hasCapacityLimit ? formData.requestedSeats : undefined
             });
 
             // Update applications count
@@ -146,7 +148,7 @@ export default function OfferDetailPage() {
     }
 
     const isExpired = offer.deadline < Date.now();
-    const canApply = user.role === 'startuper' && user.startupId && !hasApplied && !isExpired;
+    const canApply = user?.role === 'startuper' && user?.startupId && !hasApplied && !isExpired;
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -341,6 +343,28 @@ export default function OfferDetailPage() {
                                     onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                                 />
 
+                                {/* Seat Selection for Events */}
+                                {offer.type === 'event' && offer.hasCapacityLimit && (
+                                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                                            Nombre de places souhaitées *
+                                        </label>
+                                        <select
+                                            value={formData.requestedSeats}
+                                            onChange={(e) => setFormData({ ...formData, requestedSeats: parseInt(e.target.value) })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme"
+                                            required
+                                        >
+                                            {Array.from({ length: parseInt(offer.maxSeatsPerStartup) || 1 }, (_, i) => i + 1).map(num => (
+                                                <option key={num} value={num}>{num} place{num > 1 ? 's' : ''}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-600 mt-2">
+                                            Maximum {offer.maxSeatsPerStartup} place{offer.maxSeatsPerStartup > 1 ? 's' : ''} par startup
+                                        </p>
+                                    </div>
+                                )}
+
                                 <div className="flex gap-3 pt-4">
                                     <Button
                                         type="submit"
@@ -423,6 +447,32 @@ export default function OfferDetailPage() {
                             </div>
                         </div>
                     </Card>
+
+                    {/* Event Capacity Info */}
+                    {offer.type === 'event' && offer.hasCapacityLimit && (
+                        <Card className="bg-blue-50 border-2 border-blue-200">
+                            <h3 className="font-bold mb-3 flex items-center gap-2">
+                                <Icon name="Users" size={18} className="text-blue-600" />
+                                Places disponibles
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600">Capacité totale</span>
+                                    <span className="font-bold text-gray-900">{offer.maxCapacity} places</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600">Max par startup</span>
+                                    <span className="font-bold text-gray-900">{offer.maxSeatsPerStartup} places</span>
+                                </div>
+                                {/* Progress bar would go here if tracking reservations */}
+                                <div className="pt-2 border-t border-blue-300">
+                                    <p className="text-xs text-blue-700">
+                                        ✅ Places encore disponibles
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
 
                     {/* Contact */}
                     {offer.contactEmail && (

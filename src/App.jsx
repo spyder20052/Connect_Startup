@@ -22,11 +22,15 @@ import OfferDetailPage from './pages/offers/OfferDetailPage';
 // Startup Pages
 import StartupsPage from './pages/startups/StartupsPage';
 import StartupDetailPage from './pages/startups/StartupDetailPage';
+import ConnectionRequestsPage from './pages/startups/ConnectionRequestsPage';
 
 // Messages Page
 import MessagesPage from './pages/messages/MessagesPage';
 
-// Protected Route Wrapper
+// Admin Page
+import AdminPage from './pages/admin/AdminPage';
+
+// Protected Route Wrapper - Now allows public access for development
 function ProtectedRoute({ children }) {
     const { user, loading } = useAuth();
 
@@ -38,10 +42,8 @@ function ProtectedRoute({ children }) {
         );
     }
 
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
-
+    // Allow access even without user for development/testing
+    // Routes are now publicly accessible
     return <MainLayout>{children}</MainLayout>;
 }
 
@@ -60,16 +62,6 @@ function HomePage() {
     return <StartuperHomePage />;
 }
 
-// Placeholder pages (to be implemented)
-function AdminPage() {
-    return (
-        <div className="text-center py-20">
-            <h1 className="text-3xl font-bold mb-4">Administration</h1>
-            <p className="text-gray-600">Page en cours de développement</p>
-        </div>
-    );
-}
-
 function App() {
     return (
         <AuthProvider>
@@ -78,6 +70,24 @@ function App() {
                     {/* Public Routes */}
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+
+                    {/* Shortcut routes for quick access to profile pages */}
+                    <Route
+                        path="/startup"
+                        element={
+                            <ProtectedRoute>
+                                <StartuperHomePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/partner"
+                        element={
+                            <ProtectedRoute>
+                                <PartnerHomePage />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Protected Routes */}
                     <Route
@@ -103,6 +113,15 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <StartupDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/connections"
+                        element={
+                            <ProtectedRoute>
+                                <ConnectionRequestsPage />
                             </ProtectedRoute>
                         }
                     />

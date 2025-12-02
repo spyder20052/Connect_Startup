@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../services/fakeDB';
-import { Card, Button, Badge, LoadingSpinner, Alert } from '../../components/ui';
+import { Card, Button, Badge, LoadingSpinner, Alert, Modal, Textarea } from '../../components/ui';
 import { Icon } from '../../components/ui/Icons';
 
 export default function StartupDetailPage() {
@@ -14,6 +14,12 @@ export default function StartupDetailPage() {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isJoinRequested, setIsJoinRequested] = useState(false);
+
+    // Connection states
+    const [connectionStatus, setConnectionStatus] = useState(null); // null, 'pending', 'accepted'
+    const [showConnectionModal, setShowConnectionModal] = useState(false);
+    const [connectionMessage, setConnectionMessage] = useState('');
+    const [sendingConnection, setSendingConnection] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -41,6 +47,18 @@ export default function StartupDetailPage() {
                 );
                 setIsJoinRequested(!!existingRequest);
             }
+
+            // Check connection status with this startup
+            if (user?.startupId && user.startupId !== id) {
+                const connections = await db.getCollection('startupConnections');
+                const connection = connections.find(
+                    c => (c.fromStartupId === user.startupId && c.toStartupId === id) ||
+                        (c.fromStartupId === id && c.toStartupId === user.startupId)
+                );
+                if (connection) {
+                    setConnectionStatus(connection.status);
+                }
+            }
         } catch (error) {
             console.error('Error loading startup:', error);
         } finally {
@@ -62,6 +80,22 @@ export default function StartupDetailPage() {
         }
     };
 
+    const handleSendConnectionRequest = async () => {
+        if (!user || !user.startupId) return;
+
+        setSendingConnection(true);
+        try {
+            await db.sendConnectionRequest(user.startupId, id, connectionMessage);
+            setConnectionStatus('pending');
+            setShowConnectionModal(false);
+            setConnectionMessage('');
+        } catch (error) {
+            console.error('Error sending connection request:', error);
+        } finally {
+            setSendingConnection(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -78,8 +112,8 @@ export default function StartupDetailPage() {
         );
     }
 
-    const isOwner = user.role === 'startuper' && user.startupId === id;
-    const canJoin = user.role === 'startuper' && !user.startupId && !isJoinRequested;
+    const isOwner = user?.role === 'startuper' && user?.startupId === id;
+    const canJoin = user?.role === 'startuper' && !user?.startupId && !isJoinRequested;
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -123,6 +157,20 @@ export default function StartupDetailPage() {
                             {isJoinRequested && (
                                 <Badge color="yellow">Demande envoyée</Badge>
                             )}
+
+                            {/* Connection request button */}
+                            {user?.startupId && user.startupId !== id && !connectionStatus && (
+                                <Button onClick={() => setShowConnectionModal(true)} variant="outline">
+                                    <Icon name="UserPlus" size={16} />
+                                    Se connecter
+                                </Button>
+                            )}
+                            {connectionStatus === 'pending' && (
+                                <Badge color="yellow">Connexion en attente</Badge>
+                            )}
+                            {connectionStatus === 'accepted' && (
+                                <Badge color="green">✓ Connectés</Badge>
+                            )}
                         </div>
                     </div>
 
@@ -145,7 +193,7 @@ export default function StartupDetailPage() {
                                         <Icon name="Users" size={16} />
                                         {members.length} membre{members.length > 1 ? 's' : ''}
                                     </span>
-                                    {startup.rccm && (
+                                    {user?.role === 'admin' && startup.rccm && (
                                         <span className="flex items-center gap-1 font-mono text-sm">
                                             <Icon name="FileText" size={16} />
                                             {startup.rccm}
@@ -240,7 +288,7 @@ export default function StartupDetailPage() {
                                 </div>
                             </div>
 
-                            {startup.rccm && (
+                            {user.role === 'admin' && startup.rccm && (
                                 <div className="flex items-start gap-2">
                                     <Icon name="FileText" size={16} className="text-gray-400 mt-0.5" />
                                     <div>
@@ -278,6 +326,44 @@ export default function StartupDetailPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* Connection Request Modal */}
+            <Modal
+                isOpen={showConnectionModal}
+                onClose={() => setShowConnectionModal(false)}
+                title="Demande de connexion"
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-700">
+                        Envoyez une demande de connexion à <strong>{startup.name}</strong> pour développer votre réseau.
+                    </p>
+                    <Textarea
+                        label="Message (optionnel)"
+                        placeholder="Présentez-vous et expliquez pourquoi vous souhaitez vous connecter..."
+                        value={connectionMessage}
+                        onChange={(e) => setConnectionMessage(e.target.value)}
+                        rows={4}
+                    />
+                    <div className="flex gap-3 justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowConnectionModal(false)}
+                            disabled={sendingConnection}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            onClick={handleSendConnectionRequest}
+                            disabled={sendingConnection}
+                        >
+                            {sendingConnection ? <LoadingSpinner size="sm" /> : <>
+                                <Icon name="Send" size={16} />
+                                Envoyer la demande
+                            </>}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

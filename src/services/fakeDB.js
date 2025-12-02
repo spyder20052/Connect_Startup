@@ -188,6 +188,7 @@ class FakeDB {
                     { userId: 'startuper1', offerId: 'o2', savedAt: Date.now() - 86400000 * 1 }
                 ],
                 joinRequests: [],
+                startupConnections: [],
                 reports: [
                     {
                         id: 'r1',
@@ -379,6 +380,90 @@ class FakeDB {
         const offerIds = saved.map(s => s.offerId);
         const offers = data.offers.filter(o => offerIds.includes(o.id));
         return Promise.resolve(offers);
+    }
+
+    // Startup Connection Methods
+    async sendConnectionRequest(fromStartupId, toStartupId, message) {
+        const data = this._getData();
+
+        // Check if connection already exists
+        const existing = data.startupConnections.find(
+            c => (c.fromStartupId === fromStartupId && c.toStartupId === toStartupId) ||
+                (c.fromStartupId === toStartupId && c.toStartupId === fromStartupId)
+        );
+
+        if (existing) {
+            return Promise.reject('Une demande de connexion existe déjà');
+        }
+
+        const request = {
+            id: 'sc' + Date.now(),
+            fromStartupId,
+            toStartupId,
+            message: message || '',
+            status: 'pending',
+            createdAt: Date.now()
+        };
+
+        data.startupConnections.push(request);
+        this._saveData(data);
+        return Promise.resolve(request);
+    }
+
+    async acceptConnectionRequest(requestId) {
+        const data = this._getData();
+        const request = data.startupConnections.find(r => r.id === requestId);
+
+        if (!request) {
+            return Promise.reject('Demande non trouvée');
+        }
+
+        request.status = 'accepted';
+        request.respondedAt = Date.now();
+        this._saveData(data);
+        return Promise.resolve(request);
+    }
+
+    async rejectConnectionRequest(requestId) {
+        const data = this._getData();
+        const request = data.startupConnections.find(r => r.id === requestId);
+
+        if (!request) {
+            return Promise.reject('Demande non trouvée');
+        }
+
+        request.status = 'rejected';
+        request.respondedAt = Date.now();
+        this._saveData(data);
+        return Promise.resolve(request);
+    }
+
+    async getStartupConnections(startupId) {
+        const data = this._getData();
+        return Promise.resolve(
+            data.startupConnections.filter(
+                c => (c.fromStartupId === startupId || c.toStartupId === startupId) &&
+                    c.status === 'accepted'
+            )
+        );
+    }
+
+    async getPendingConnectionRequests(startupId) {
+        const data = this._getData();
+        return Promise.resolve(
+            data.startupConnections.filter(
+                c => c.toStartupId === startupId && c.status === 'pending'
+            )
+        );
+    }
+
+    async getSentConnectionRequests(startupId) {
+        const data = this._getData();
+        return Promise.resolve(
+            data.startupConnections.filter(
+                c => c.fromStartupId === startupId
+            )
+        );
     }
 }
 

@@ -118,7 +118,7 @@ export default function OffersPage() {
                     </p>
                 </div>
 
-                {(user.role === 'partner' || user.role === 'admin') && (
+                {(user?.role === 'partner' || user?.role === 'admin') && (
                     <Link to="/offers/create">
                         <Button size="lg">
                             <Icon name="PlusCircle" size={18} />
@@ -173,8 +173,8 @@ export default function OffersPage() {
                         <button
                             onClick={() => setShowOnlySaved(!showOnlySaved)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${showOnlySaved
-                                    ? 'bg-theme text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-theme text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             <Icon name="Bookmark" size={14} className="inline mr-1" />

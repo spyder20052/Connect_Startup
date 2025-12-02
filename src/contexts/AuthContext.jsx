@@ -3,22 +3,51 @@ import { db } from '../services/fakeDB';
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for saved user session
-        const savedUser = localStorage.getItem('sc_current_user');
-        if (savedUser) {
-            try {
-                setUser(JSON.parse(savedUser));
-            } catch (e) {
-                localStorage.removeItem('sc_current_user');
+        // Check for demo user in URL parameter (?user=userId)
+        const urlParams = new URLSearchParams(window.location.search);
+        const demoUserId = urlParams.get('user');
+
+        if (demoUserId) {
+            // Demo mode: load user from fakeDB without authentication
+            loadDemoUser(demoUserId);
+        } else {
+            // Normal mode: check localStorage for authenticated user
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch (e) {
+                    localStorage.removeItem('currentUser');
+                }
             }
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
+
+    const loadDemoUser = async (userId) => {
+        try {
+            const users = await db.getCollection('users');
+            const demoUser = users.find(u => u.uid === userId || u.email === userId);
+
+            if (demoUser) {
+                console.log('🎭 Demo Mode Active:', demoUser.displayName, `(${demoUser.role})`);
+                setUser(demoUser);
+            } else {
+                console.warn('⚠️ Demo user not found:', userId);
+                setUser(null);
+            }
+        } catch (error) {
+            console.error('Error loading demo user:', error);
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const login = async (email, password) => {
         try {
